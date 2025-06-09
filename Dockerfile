@@ -1,6 +1,5 @@
 FROM python:3.12-slim
 
-# Установим зависимости
 RUN apt-get update && apt-get install -y \
     wget curl unzip gnupg ca-certificates \
     libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 \
@@ -16,27 +15,21 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     dpkg -i google-chrome-stable_current_amd64.deb || apt-get -fy install && \
     rm google-chrome-stable_current_amd64.deb
 
-# Явно укажем версию ChromeDriver, совместимую с Chrome 125+
-ENV CHROMEDRIVER_VERSION=125.0.6422.60
-
-# Установим ChromeDriver (вместо автоматического определения версии)
-RUN wget -q https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip && \
+# Устанавливаем ChromeDriver с явной версией — ПРАВИЛЬНО
+RUN CHROMEDRIVER_VERSION=125.0.6422.60 && \
+    wget -q https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
     rm chromedriver_linux64.zip
 
-# Установим Python-зависимости
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем проект
 COPY . .
 
-# Объявим переменные окружения
 ENV PATH="/usr/local/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-# Старт
 CMD ["python", "main.py"]
