@@ -1,5 +1,5 @@
 selenium
 beautifulsoup4
-python-telegram-bot==13.15
+python-telegram-bot==13.14
 beautifulsoup4
 psycopg2-binary
