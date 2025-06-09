@@ -10,14 +10,13 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Установим Google Chrome
+# Установка Google Chrome
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     dpkg -i google-chrome-stable_current_amd64.deb || apt-get -fy install && \
     rm google-chrome-stable_current_amd64.deb
 
-# Устанавливаем ChromeDriver с явной версией — ПРАВИЛЬНО
-RUN CHROMEDRIVER_VERSION=125.0.6422.60 && \
-    wget -q https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip && \
+# ChromeDriver для Chrome 126
+RUN wget -q https://chromedriver.storage.googleapis.com/126.0.6478.61/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
