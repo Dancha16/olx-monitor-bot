@@ -1,5 +1,7 @@
-selenium
-beautifulsoup4
 python-telegram-bot==13.14
+urllib3==1.26.16
+six==1.16.0
 beautifulsoup4
+selenium
 psycopg2-binary
+python-dotenv
