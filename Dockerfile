@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 # Установим зависимости
 RUN apt-get update && apt-get install -y \
-    wget unzip curl gnupg ca-certificates \
+    wget curl unzip gnupg ca-certificates \
     libglib2.0-0 libnss3 libgconf-2-4 libfontconfig1 \
     libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 libxrandr2 \
     libasound2 libatk-bridge2.0-0 libatk1.0-0 libcups2 \
@@ -12,30 +12,31 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Установим Google Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     dpkg -i google-chrome-stable_current_amd64.deb || apt-get -fy install && \
     rm google-chrome-stable_current_amd64.deb
 
-# Установим совместимый ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | awk '{ print $3 }' | cut -d '.' -f 1) && \
-    DRIVER_VERSION=$(curl -s https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION) && \
-    wget https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip && \
+# Явно укажем версию ChromeDriver, совместимую с Chrome 125+
+ENV CHROMEDRIVER_VERSION=125.0.6422.60
+
+# Установим ChromeDriver (вместо автоматического определения версии)
+RUN wget -q https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip && \
     unzip chromedriver_linux64.zip && \
     mv chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
     rm chromedriver_linux64.zip
 
-# Установим зависимости Python
+# Установим Python-зависимости
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь код
+# Копируем проект
 COPY . .
 
-# Установим переменные окружения (если нужно — или настроишь в Railway)
-ENV PYTHONUNBUFFERED=1
+# Объявим переменные окружения
 ENV PATH="/usr/local/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
 
-# Стартовый файл
+# Старт
 CMD ["python", "main.py"]
