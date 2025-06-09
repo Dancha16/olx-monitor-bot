@@ -1,5 +1,5 @@
-import time
 import os
+import time
 import json
 import logging
 from bs4 import BeautifulSoup
@@ -10,6 +10,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from telegram import Bot, InputMediaPhoto
+
+from db import load_sent_ids, save_sent_id, ensure_table_exists
 
 # Telegram конфигурация через переменные окружения
 YOUR_TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -25,28 +27,11 @@ OLX_URLS = [
 # Приоритетные модели
 PRIORITY_MODELS = ['135', '160', '175', '185', '190', '220']
 
-# Файл для хранения отправленных ID
-SENT_IDS_FILE = "sent_ids.txt"
-
 # Логирование
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     level=logging.INFO,
-    handlers=[
-        logging.FileHandler("olx_bot.log", encoding='utf-8'),
-        logging.StreamHandler()
-    ]
 )
-
-def load_sent_ids():
-    if not os.path.exists(SENT_IDS_FILE):
-        return set()
-    with open(SENT_IDS_FILE, "r") as f:
-        return set(line.strip() for line in f.readlines())
-
-def save_sent_id(ad_id):
-    with open(SENT_IDS_FILE, "a") as f:
-        f.write(ad_id + "\n")
 
 def get_all_images_from_ad(url, driver, retries=2):
     for attempt in range(retries):
@@ -108,14 +93,15 @@ def is_priority(title):
 def main():
     logging.info("🚀 Запуск моніторингу OLX...")
 
+    ensure_table_exists()
+    sent_ids = load_sent_ids()
+
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:110.0) Gecko/20100101 Firefox/110.0")
     driver = webdriver.Chrome(options=chrome_options)
-
-    sent_ids = load_sent_ids()
 
     try:
         while True:
